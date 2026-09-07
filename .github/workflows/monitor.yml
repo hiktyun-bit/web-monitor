@@ -3,7 +3,7 @@ name: Web Monitor
 on:
   schedule:
     # 30분마다 자동 실행 (크론 스케줄)
-    - cron: '*/30 * * * *'
+    - cron: '*/20 * * * *'
   workflow_dispatch: # 수동 테스트 버튼 활성화
 
 jobs:
