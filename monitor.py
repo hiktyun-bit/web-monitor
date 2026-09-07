@@ -39,8 +39,17 @@ def check_website():
         response = requests.get(TARGET_URL, headers=headers, timeout=10)
         response.raise_for_status()
         
-        # 한글 깨짐 방지
-        response.encoding = response.apparent_encoding
+        # 한글 인코딩 처리 보완
+        if response.encoding is None or response.encoding == 'ISO-8859-1':
+            response.encoding = 'utf-8'
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        text_content = soup.get_text()
+
+        # 🔍 가져온 텍스트 상위 500자 로그에 출력해보기
+        print("--- 가져온 텍스트 일부 ---")
+        print(text_content[:500])
+        print("---------------------------")
         
         soup = BeautifulSoup(response.text, "html.parser")
         text_content = soup.get_text()
