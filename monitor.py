@@ -10,7 +10,7 @@ EMAIL_PASS = os.environ.get("EMAIL_PASS")
 TO_EMAIL = os.environ.get("TO_EMAIL")
 
 # 🔍 감지할 단어 리스트
-KEYWORDS = ["승아", "연아"]
+KEYWORDS = ["승아", "연아", "이솔"]
 
 # 🔍 감지 조건 설정 ("OR" = 하나만 있어도 알림 / "AND" = 모두 있어야 알림)
 MATCH_OPTION = "OR"
