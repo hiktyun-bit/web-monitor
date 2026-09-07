@@ -11,7 +11,7 @@ EMAIL_PASS = os.environ.get("EMAIL_PASS")
 TO_EMAIL = os.environ.get("TO_EMAIL")
 
 # 🔍 웹페이지에서 감지할 특정 단어를 입력하세요
-KEYWORD = "보라" 
+KEYWORD = "승아" 
 
 def send_email():
     subject = f"[알림] 웹페이지에서 '{KEYWORD}' 단어가 감지되었습니다!"
