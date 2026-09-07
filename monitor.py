@@ -2,20 +2,30 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 import requests
-from bs4 import BeautifulSoup
 
-# Secrets에서 환경변수 불러오기
+# GitHub Secrets에서 환경변수 불러오기
 TARGET_URL = os.environ.get("TARGET_URL")
 EMAIL_USER = os.environ.get("EMAIL_USER")
 EMAIL_PASS = os.environ.get("EMAIL_PASS")
 TO_EMAIL = os.environ.get("TO_EMAIL")
 
-# 🔍 웹페이지에서 감지할 특정 단어를 입력하세요
-KEYWORD = "승아" 
+# 🔍 감지할 단어 리스트
+KEYWORDS = ["승아", "보라"]
 
-def send_email():
-    subject = f"[알림] 웹페이지에서 '{KEYWORD}' 단어가 감지되었습니다!"
-    body = f"설정한 URL ({TARGET_URL})에서 키워드 '{KEYWORD}'를 찾았습니다.\n지금 페이지를 확인해 보세요."
+# 🔍 감지 조건 설정 ("OR" = 하나만 있어도 알림 / "AND" = 모두 있어야 알림)
+MATCH_OPTION = "OR"
+
+
+def send_email(found_keywords):
+    """발견된 키워드 정보를 포함하여 이메일을 발송합니다."""
+    found_str = ", ".join(found_keywords)
+    subject = f"[알림] API에서 키워드 감지: [{found_str}]"
+    body = (
+        f"설정한 API URL에서 지정한 키워드가 발견되었습니다.\n\n"
+        f"- 감지된 키워드: {found_str}\n"
+        f"- 타겟 URL: {TARGET_URL}\n\n"
+        f"지금 바로 확인해 보세요."
+    )
     
     msg = MIMEText(body)
     msg["Subject"] = subject
@@ -26,42 +36,46 @@ def send_email():
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(EMAIL_USER, EMAIL_PASS)
             server.sendmail(EMAIL_USER, TO_EMAIL, msg.as_string())
-        print("이메일 발송 완료!")
+        print(f"이메일 발송 완료! (감지된 키워드: {found_str})")
     except Exception as e:
         print(f"이메일 발송 실패: {e}")
 
+
 def check_website():
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
     }
-    
+
     try:
-        response = requests.get(TARGET_URL, headers=headers, timeout=10)
+        print(f"[{TARGET_URL}] 요청 송신 중...")
+        response = requests.get(TARGET_URL, headers=headers, timeout=15)
         response.raise_for_status()
-        
-        # 한글 인코딩 처리 보완
-        if response.encoding is None or response.encoding == 'ISO-8859-1':
-            response.encoding = 'utf-8'
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        text_content = soup.get_text()
+        # 인코딩 처리
+        response.encoding = response.apparent_encoding or 'utf-8'
+        response_text = response.text
 
-        # 🔍 가져온 텍스트 상위 500자 로그에 출력해보기
-        print("--- 가져온 텍스트 일부 ---")
-        print(text_content[:500])
-        print("---------------------------")
-        
-        soup = BeautifulSoup(response.text, "html.parser")
-        text_content = soup.get_text()
+        # 키워드 검색
+        found_keywords = [kw for kw in KEYWORDS if kw in response_text]
 
-        if KEYWORD in text_content:
-            print(f"키워드 '{KEYWORD}' 발견!")
-            send_email()
+        # 조건 판별 (OR / AND)
+        is_matched = False
+        if MATCH_OPTION.upper() == "OR" and len(found_keywords) > 0:
+            is_matched = True
+        elif MATCH_OPTION.upper() == "AND" and len(found_keywords) == len(KEYWORDS):
+            is_matched = True
+
+        if is_matched:
+            print(f"조건 만족! 발견된 키워드: {found_keywords}")
+            send_email(found_keywords)
         else:
-            print(f"키워드 '{KEYWORD}' 미발견.")
+            print(f"조건 미충족. (찾은 키워드: {found_keywords} / 전체 설정 키워드: {KEYWORDS})")
 
     except Exception as e:
-        print(f"웹페이지 조회 중 오류 발생: {e}")
+        print(f"요청 중 오류 발생: {e}")
+
 
 if __name__ == "__main__":
     check_website()
