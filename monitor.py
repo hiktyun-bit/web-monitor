@@ -13,7 +13,7 @@ EMAIL_PASS = os.environ.get("EMAIL_PASS")
 TO_EMAIL = os.environ.get("TO_EMAIL")
 
 # 🔍 감지할 단어 리스트
-KEYWORDS = ["승아", "연아", "이솔"]
+KEYWORDS = ["승아", "연아", "이솔", "다인"]
 
 LOG_FILE = "sent_log.json"
 
