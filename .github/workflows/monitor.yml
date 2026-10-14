@@ -2,9 +2,10 @@ name: Web Monitor
 
 on:
   schedule:
-    # 한국 시간(KST) 오전 09:00 ~ 오후 19:00 매 15분마다 실행 (UTC 00:00 ~ 10:00)
-    - cron: '*/15 0-10 * * *'
-  workflow_dispatch: # 수동 실행 버튼
+    # 정각(00, 15, 30, 45) 대신 5분 단위(05, 20, 35, 50)로 비켜서 설정
+    # KST 09:05 ~ 19:05 매 15분마다 실행 (UTC 00:05 ~ 10:05)
+    - cron: '5/15 0-10 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
